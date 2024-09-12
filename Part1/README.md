@@ -16,4 +16,6 @@ The desired output should be the table `shopper_recurrence_rate` containing the 
 ## Output
 
 [See csv output here!](https://github.com/raulvazquez7/analytics-engineer-challenge/blob/main/Part1/Output/monthly_recurrence_rate.csv)
+[See output query here!](https://github.com/raulvazquez7/analytics-engineer-challenge/blob/main/Part1/Queries/recurrence.sql)
+
 
