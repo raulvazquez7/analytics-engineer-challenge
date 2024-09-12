@@ -16,7 +16,6 @@ The desired output should be the table `shopper_recurrence_rate` containing the 
 ## Output
 
 [See csv output here!](https://github.com/raulvazquez7/analytics-engineer-challenge/blob/main/Part1/Output/monthly_recurrence_rate.csv)
-[See output query here!](https://github.com/raulvazquez7/analytics-engineer-challenge/blob/main/Part1/Queries/recurrence.sql)
 
 ### Analysis Objective
 
@@ -31,4 +30,6 @@ The main objective of the analysis is to calculate the recurrence rate of buyers
 - I also wanted to create a query that is parameterizable and flexible so that by only changing the dates at the top, we can perform analyses for the months we want.
 - The query we attached only loads results for one month; if we want to load historical data for several months, we would need to create a small process to automate it.
 
+## Query
 
+[See output query here!](https://github.com/raulvazquez7/analytics-engineer-challenge/blob/main/Part1/Queries/recurrence.sql)
