@@ -1,0 +1,26 @@
+default_type_id,order_id,default_type
+1,1,Minor Default
+7,7,Minor Default
+10,10,Minor Default
+19,19,Minor Default
+22,22,Minor Default
+25,25,Minor Default
+9,9,Severe Default
+11,11,Severe Default
+14,14,Severe Default
+15,15,Severe Default
+17,17,Severe Default
+23,23,Severe Default
+3,3,Critical Default
+5,5,Critical Default
+6,6,Critical Default
+8,8,Critical Default
+2,2,Moderate Default
+4,4,Moderate Default
+12,12,Moderate Default
+13,13,Moderate Default
+16,16,Moderate Default
+18,18,Moderate Default
+20,20,Moderate Default
+21,21,Moderate Default
+24,24,Moderate Default
