@@ -36,9 +36,9 @@ The objective of the analysis is to create a dataset that allows us to examine t
 
 My approach was to create a model in dbt differentiating between three phases:
 
-- staging: create basic views that extract data from the tables we will work with.
-- intermediate: two views where the deeper transformation is carried out, as well as the joining of different data to add more information.
-- final: the final tables where only the fields necessary for the analysis are extracted.
+- **staging**: create basic views that extract data from the tables we will work with.
+- **intermediate**: two views where the deeper transformation is carried out, as well as the joining of different data to add more information.
+- **final**: the final tables where only the fields necessary for the analysis are extracted.
 
 The idea was to create a dataset where `order_id` entries belonging to more than one `delayed_period` group were duplicated. For example, an `order_id` with 35 days_unbalance will appear twice in the output, once in group 17 and once in group 30. This is essential to capture the full contribution of each order to the different delinquency levels and to understand how risk accumulates.
 
