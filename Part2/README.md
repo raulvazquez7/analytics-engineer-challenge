@@ -23,3 +23,30 @@ The desidered Output for the DataSet needed is:
 - `merchant`
 - `default_type`
 - `delayed_period`
+
+## Output
+
+### Analysis Objective
+
+The objective of the analysis is to create a dataset that allows us to examine the relationship between the buyer's profile (age), the merchant, the product, and the different types of delinquency (`delayed_period`). This type of analysis is crucial for identifying risk patterns, evaluating the effectiveness of collection mechanisms, and adjusting risk mitigation strategies.
+
+### Approach
+
+My approach was to create a model in dbt differentiating between three phases:
+
+- staging: create basic views that extract data from the tables we will work with.
+- intermediate: two views where the deeper transformation is carried out, as well as the joining of different data to add more information.
+- final: the final tables where only the fields necessary for the analysis are extracted.
+
+The idea was to create a dataset where `order_id` entries belonging to more than one `delayed_period` group were duplicated. For example, an `order_id` with 35 days_unbalance will appear twice in the output, once in group 17 and once in group 30. This is essential to capture the full contribution of each order to the different delinquency levels and to understand how risk accumulates.
+As a bonus, since it was not specifically requested, I created a model capable of calculating the monthly default ratio. We will look at this next.
+
+### Assumptions and comments to be shared
+
+- I created mockups of the data sources to conduct real tests, understand the problem, and propose a solution. These can be found in the Data folder.
+- We do not use is_in_default since the days_unbalanced field already serves to determine whether a loan is in default when it is greater than 0.
+- In the aggregation of delayed_period, we are excluding delinquencies of 1 to 16 days, which are not being considered for the analysis. To address this, we should include an additional level in the analysis to account for them.
+- In the aggregation of delayed_period, we assume that more than one order_id can be aggregated into more than one level. For example, an order with 35 days will be aggregated into levels 17 and 30 but not in 60 and 90 as it does not exceed these numbers.
+- I assumed that the desired dataset is intended for visualization in a dashboard, which is why the dbt instruction is to create a table.
+
+
