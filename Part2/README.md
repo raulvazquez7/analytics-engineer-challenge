@@ -52,4 +52,83 @@ As a bonus, since it was not specifically requested, I created a model capable o
 - In the aggregation of delayed_period, we assume that more than one order_id can be aggregated into more than one level. For example, an order with 35 days will be aggregated into levels 17 and 30 but not in 60 and 90 as it does not exceed these numbers.
 - I assumed that the desired dataset is intended for visualization in a dashboard, which is why the dbt instruction is to create a table.
 
+### Explanation of the model, queries and context
+
+The idea here is to share with you some specifics of the analysis and comments without going into too much detail.
+
+#### Staging
+
+In the **"staging"** phase, the idea was to create five views, one for each of the tables in our analytical model, to extract the data as well as perform some simple calculations.
+
+The only notable point here is that in the stg_orders query, we create a new column called total_overdue, which we calculate by summing overdue_principal and overdue_fees.
+
+```sql
+-- stg_dim_shoppers
+{{ config(
+    materialized='view'
+) }}
+
+SELECT 
+    shopper_id,
+    age
+FROM {{ source('seQura_dbt', 'dim_shoppers') }}
+
+-- stg_merchants
+{{ config(
+    materialized='view'
+) }}
+
+SELECT 
+    merchant_id,
+    merchant_name
+FROM {{ source('seQura_dbt', 'merchants') }}
+
+-- stg_orders
+{{ config(
+    materialized='view'  
+) }}
+
+WITH raw_orders AS (
+    SELECT 
+        order_id,
+        shopper_id,
+        order_date,
+        product_id,
+        merchant_id,
+        is_in_default,
+        days_unbalanced,
+        current_order_value,
+        overdue_principal,
+        overdue_fees
+    FROM {{ source('seQura_dbt', 'orders') }}
+)
+
+SELECT 
+    *,
+    overdue_principal + overdue_fees AS total_overdue 
+FROM raw_orders
+WHERE current_order_value IS NOT NULL
+
+-- stg_product
+{{ config(
+    materialized='view'
+) }}
+
+SELECT 
+    product_id,
+    product_name
+FROM {{ source('seQura_dbt', 'products') }}
+
+-- stg_rel_default_order_type
+{{ config(
+    materialized='view'
+) }}
+
+SELECT 
+    default_type_id,
+    order_id,
+    default_type
+FROM {{ source('seQura_dbt', 'rel_default_order_type') }}
+
+```
 
