@@ -48,7 +48,7 @@ DECLARE analysis_month DATE DEFAULT DATE('2022-12-01');  -- Define the month of 
 DECLARE start_month DATE DEFAULT DATE_SUB(analysis_month, INTERVAL 11 MONTH);  -- Define the window start date
 ```
 
-The first and second subqueries are just the extraction of data from our two main tables: orders, where purchases are recorded, and merchants, where we have the necessary merchant_name information.
+The first and second subqueries are just the extraction of data from our two main tables: **orders**, where purchases are recorded, and **merchants**, where we have the necessary merchant_name information.
 
 ```sql
 WITH orders AS (
@@ -68,7 +68,7 @@ merchants AS (
 ),
 ```
 
-The third subquery, last_month_shoppers, is used to extract the unique number of shopper_id who purchased in the last closed month along with order_date and merchant_id information, which will be used later to create the shopped_in_last_closed_month column.
+The third subquery, last_month_shoppers, is used to extract the unique number of `shopper_id` who purchased in the last closed month along with `order_date` and `merchant_id` information, which will be used later to create the `shopped_in_last_closed_month` column.
 
 ```sql
 last_month_shoppers AS (
@@ -80,3 +80,82 @@ last_month_shoppers AS (
   WHERE order_date BETWEEN analysis_month AND LAST_DAY(analysis_month)
 ),
 ```
+
+The fourth subquery, previous_shoppers, provides the list of `shopper_id` who purchased in the last 12 months, excluding the analysis month (in this case, December, so from January to November). This list still needs to include users who may have made two purchases with the same `merchant_id` in the analysis month; we will identify them in the next subquery.
+
+```sql
+previous_shoppers AS (
+  SELECT DISTINCT 
+    orders.shopper_id,
+    orders.merchant_id
+  FROM orders
+  INNER JOIN last_month_shoppers ON orders.shopper_id = last_month_shoppers.shopper_id AND orders.merchant_id = last_month_shoppers.merchant_id
+  WHERE orders.order_date BETWEEN start_month AND LAST_DAY(analysis_month)
+  AND orders.order_date < analysis_month  -- Exclude orders on analysis month
+),
+```
+
+The fifth subquery, analysis_month_recurrent_shoppers, gives us the list of `shopper_id` who made two or more purchases in the analysis month with the same `merchant_id`. We are assuming that a user who made two purchases (two order_id) on the same day is considered recurrent.
+
+```sql
+analysis_month_recurrent_shoppers AS (
+  SELECT 
+    shopper_id,
+    merchant_id
+  FROM orders
+  WHERE order_date BETWEEN analysis_month AND LAST_DAY(analysis_month)
+  GROUP BY shopper_id, merchant_id
+  HAVING COUNT(order_id) > 1  -- Detect multiples orders in the same month (on the same merchant_id)
+),
+```
+
+The sixth subquery, output, is the main query where we combine the processed information and calculate the two most important columns for the analysis:
+
+- `shopped_in_last_closed_month`: We perform a JOIN with the last_month_shoppers table and match `shopper_id` also by `order_date` to identify the buyers of the last closed month.
+- `recurrent_shopper`: We perform a JOIN with previous_shoppers and analysis_month_recurrent_shoppers to identify those `shopper_id` who purchased in the analysis month and also did so in the last 12 months with the same `merchant_id`.
+We add `merchant_name` information here by performing a JOIN with the merchants table.
+
+I have also included a screenshot of the query results for more details. (December analysis results)
+
+![C8F83333-0B27-4DF5-9503-CAD6F930909B](https://github.com/user-attachments/assets/92923164-b36f-41f9-9fe5-76b326d6622f)
+
+```sql
+output AS (
+  SELECT 
+    orders.order_date,
+    orders.order_id,
+    orders.shopper_id,
+    CASE WHEN last_month_shoppers.shopper_id IS NULL THEN FALSE ELSE TRUE END AS shopped_in_last_closed_month,
+    CASE WHEN previous_shoppers.shopper_id IS NOT NULL OR analysis_month_recurrent_shoppers.shopper_id IS NOT NULL THEN TRUE ELSE FALSE END AS recurrent_shopper,
+    orders.merchant_id,
+    merchants.merchant_name
+  FROM orders
+  LEFT JOIN merchants ON orders.merchant_id = merchants.merchant_id
+  LEFT JOIN last_month_shoppers ON orders.shopper_id = last_month_shoppers.shopper_id AND orders.order_date = last_month_shoppers.order_date
+  LEFT JOIN previous_shoppers ON orders.shopper_id = previous_shoppers.shopper_id AND orders.merchant_id = previous_shoppers.merchant_id
+  LEFT JOIN analysis_month_recurrent_shoppers ON orders.shopper_id = analysis_month_recurrent_shoppers.shopper_id AND orders.merchant_id = analysis_month_recurrent_shoppers.merchant_id
+),
+```
+
+In the final query, we obtain the desired `recurrence_rate` results by aggregating by the analysis `month` and `merchant_id`.
+
+```sql
+recurrence_rate AS (
+  SELECT 
+    merchant_name,
+    FORMAT_DATE('%Y-%m', analysis_month) AS month,
+    ROUND(100 * COUNT(DISTINCT CASE WHEN recurrent_shopper THEN shopper_id END) / COUNT(DISTINCT shopper_id), 2) AS recurrence_rate
+  FROM output
+  GROUP BY merchant_name, month
+)
+
+SELECT 
+* 
+FROM recurrence_rate
+ORDER BY month, merchant_name;
+```
+
+
+
+
+
