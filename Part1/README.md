@@ -33,3 +33,19 @@ The main objective of the analysis is to calculate the recurrence rate of buyers
 ## Query
 
 [See output query here!](https://github.com/raulvazquez7/analytics-engineer-challenge/blob/main/Part1/Queries/recurrence.sql)
+
+### Explanation of the query and context
+
+The idea here is to share with you some specifics of the analysis and comments without going into too much detail.
+
+The first thing we do is declare two variables to make this query parameterizable.
+- `analysis_month`: The first date of the analysis month where we want to measure recurrence. For example, if we set it to 2022-12-01, the analysis will be done on December.
+- `start_month`: This date is calculated from the analysis_month; following the previous example, the start_month will be 2022-01-01.
+
+```sql
+--Declare date variables for analysis
+DECLARE analysis_month DATE DEFAULT DATE('2022-12-01');  -- Define the month of analysis (Set for December)
+DECLARE start_month DATE DEFAULT DATE_SUB(analysis_month, INTERVAL 11 MONTH);  -- Define the window start date
+```
+
+
