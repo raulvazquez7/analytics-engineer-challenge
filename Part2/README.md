@@ -146,7 +146,7 @@ We will start by discussing the view that will extract the data required for thi
 ) }}
 
 WITH arrears_data AS (
-    -- Extraemos los datos necesarios de la tabla de orders
+    -- We extract the necessary data from orders table
     SELECT
         o.order_id,
         o.shopper_id,
@@ -165,11 +165,11 @@ WITH arrears_data AS (
     LEFT JOIN {{ ref('stg_merchants') }} m ON o.merchant_id = m.merchant_id
     LEFT JOIN {{ ref('stg_product') }} p ON o.product_id = p.product_id
     LEFT JOIN {{ ref('stg_rel_default_order_type') }} r ON o.order_id = r.order_id
-    WHERE o.days_unbalanced >= 17  -- Solo consideramos órdenes con mora
+    WHERE o.days_unbalanced >= 17  -- We only consider orders in default
 ),
 
 expanded_periods AS (
-    -- Generamos una fila para cada `order_id` en función de sus niveles de mora
+    -- We generate a row for each order_id based on its default levels.
     SELECT 
         order_id,
         shopper_id,
@@ -272,7 +272,7 @@ This query will calculate the Default Ratio on a monthly basis. Although it was 
 ) }}
 
 WITH monthly_data AS (
-    -- Extraer los montos necesarios agrupados por mes
+    -- Extract the necessary amounts grouped by month.
     SELECT 
         FORMAT_DATE('%Y-%m', order_date) AS month_year_order,
         SUM(CASE WHEN days_unbalanced > 0 THEN total_overdue ELSE 0 END) AS loans_in_arrears_debt,
@@ -281,7 +281,7 @@ WITH monthly_data AS (
     GROUP BY month_year_order
 )
 
--- Calcular el Default Ratio por mes
+-- Calculate Default Ratio by month
 SELECT 
     month_year_order,
     loans_in_arrears_debt,
@@ -291,5 +291,47 @@ FROM monthly_data
 
 ```
 
+<ins>Final</ins> 
+
+In the final stage, we will basically create two tables, one for each of the analyses, so that this data can be used in a BI tool. In these queries, we select only the data that we consider necessary to be available
+
+**1. final_loans_mora_analysis**
+
+```sql
+{{ config(
+    materialized='table'
+) }}
+
+SELECT 
+    shopper_age,
+    month_year_order,
+    product,
+    merchant,
+    default_type,
+    delayed_period
+FROM {{ ref('intermediate_loans_mora_analysis') }}
+ORDER BY month_year_order, delayed_period
+
+```
+
+[See csv output here!](https://github.com/raulvazquez7/analytics-engineer-challenge/blob/main/Part2/Output/final_loans_mora_analysis.csv)
+
+**2. final_monthly_default_ratio**
+
+```sql
+{{ config(
+    materialized='table'
+) }}
+
+SELECT 
+    month_year_order,
+    loans_in_arrears_debt,
+    total_loans_amount,
+    default_ratio
+FROM {{ ref('intermediate_monthly_default_ratio') }}
+ORDER BY month_year_order
+```
+
+[See csv output here!](https://github.com/raulvazquez7/analytics-engineer-challenge/blob/main/Part2/Output/final_monthly_default_ratio.csv)
 
 
