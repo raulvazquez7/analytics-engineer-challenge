@@ -1,0 +1,19 @@
+merchant_name,month,recurrence_rate
+Merchant D,2022-10,0.0
+Merchant F,2022-10,0.0
+Merchant C,2022-10,0.0
+Merchant E,2022-10,0.0
+Merchant B,2022-10,0.0
+Merchant A,2022-10,50.0
+Merchant F,2022-11,0.0
+Merchant C,2022-11,0.0
+Merchant E,2022-11,0.0
+Merchant D,2022-11,0.0
+Merchant A,2022-11,0.0
+Merchant B,2022-11,50.0
+Merchant E,2022-12,0.0
+Merchant A,2022-12,0.0
+Merchant C,2022-12,0.0
+Merchant F,2022-12,0.0
+Merchant B,2022-12,50.0
+Merchant D,2022-12,100.0
