@@ -26,6 +26,8 @@ The desidered Output for the DataSet needed is:
 
 ## Output
 
+[See model here!](https://github.com/raulvazquez7/analytics-engineer-challenge/tree/main/Part2/my_dbt_project)
+
 ### Analysis Objective
 
 The objective of the analysis is to create a dataset that allows us to examine the relationship between the buyer's profile (age), the merchant, the product, and the different types of delinquency (`delayed_period`). This type of analysis is crucial for identifying risk patterns, evaluating the effectiveness of collection mechanisms, and adjusting risk mitigation strategies.
