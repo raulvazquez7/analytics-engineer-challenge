@@ -34,6 +34,8 @@ The objective of the analysis is to create a dataset that allows us to examine t
 
 ### Approach
 
+To carry out the project, I worked with DBT and BigQuery, where I created the tables, views, and the model. I can provide access to the GCP project if needed to review the work done.
+
 My approach was to create a model in dbt differentiating between three phases:
 
 - **staging**: create basic views that extract data from the tables we will work with.
