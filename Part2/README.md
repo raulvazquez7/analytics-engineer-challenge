@@ -56,7 +56,7 @@ As a bonus, since it was not specifically requested, I created a model capable o
 
 The idea here is to share with you some specifics of the analysis and comments without going into too much detail.
 
-**<u>Staging Phase</u>**
+<u><strong>Texto en negrita y subrayado</strong></u>
 
 In the **"staging"** phase, the idea was to create five views, one for each of the tables in our analytical model, to extract the data as well as perform some simple calculations.
 
