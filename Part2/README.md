@@ -41,6 +41,7 @@ My approach was to create a model in dbt differentiating between three phases:
 - final: the final tables where only the fields necessary for the analysis are extracted.
 
 The idea was to create a dataset where `order_id` entries belonging to more than one `delayed_period` group were duplicated. For example, an `order_id` with 35 days_unbalance will appear twice in the output, once in group 17 and once in group 30. This is essential to capture the full contribution of each order to the different delinquency levels and to understand how risk accumulates.
+
 As a bonus, since it was not specifically requested, I created a model capable of calculating the monthly default ratio. We will look at this next.
 
 ### Assumptions and comments to be shared
