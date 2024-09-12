@@ -60,7 +60,7 @@ The idea here is to share with you some specifics of the analysis and comments w
 
 In the **"staging"** phase, the idea was to create five views, one for each of the tables in our analytical model, to extract the data as well as perform some simple calculations.
 
-The only notable point here is that in the stg_orders query, we create a new column called total_overdue, which we calculate by summing overdue_principal and overdue_fees.
+The only notable point here is that in the stg_orders query, we create a new column called `total_overdue`, which we calculate by summing `overdue_principal` and `overdue_fees`.
 
 ```sql
 -- stg_dim_shoppers
@@ -131,4 +131,133 @@ SELECT
 FROM {{ source('seQura_dbt', 'rel_default_order_type') }}
 
 ```
+
+<ins>Intermediate</ins> 
+
+In the "intermediate" stage, we have two views. In this stage, the objective is to perform deeper transformations and combine data from the different tables of the analytical model.
+
+We will start by discussing the view that will extract the data required for this analysis. The idea was to create a dataset where `order_id` entries belonging to more than one `delayed_period` group were duplicated. For example, an `order_id` with 35 days_unbalance will appear twice in the output, once in group 17 and once in group 30. This is essential to capture the full contribution of each order to the different delinquency levels and to understand how risk accumulates.
+
+```sql
+{{ config(
+    materialized='view'
+) }}
+
+WITH arrears_data AS (
+    -- Extraemos los datos necesarios de la tabla de orders
+    SELECT
+        o.order_id,
+        o.shopper_id,
+        s.age AS shopper_age, 
+        o.merchant_id,
+        m.merchant_name AS merchant,
+        p.product_name AS product,
+        r.default_type,
+        o.order_date,
+        FORMAT_DATE('%Y-%m', o.order_date) AS month_year_order,
+        o.current_order_value,
+        o.total_overdue,
+        o.days_unbalanced
+    FROM {{ ref('stg_orders') }} o
+    LEFT JOIN {{ ref('stg_dim_shoppers') }} s ON o.shopper_id = s.shopper_id
+    LEFT JOIN {{ ref('stg_merchants') }} m ON o.merchant_id = m.merchant_id
+    LEFT JOIN {{ ref('stg_product') }} p ON o.product_id = p.product_id
+    LEFT JOIN {{ ref('stg_rel_default_order_type') }} r ON o.order_id = r.order_id
+    WHERE o.days_unbalanced >= 17  -- Solo consideramos órdenes con mora
+),
+
+expanded_periods AS (
+    -- Generamos una fila para cada `order_id` en función de sus niveles de mora
+    SELECT 
+        order_id,
+        shopper_id,
+        shopper_age,
+        merchant_id,
+        merchant,
+        product,
+        default_type,
+        order_date,
+        month_year_order,
+        current_order_value,
+        total_overdue,
+        days_unbalanced,
+        '17 days' AS delayed_period
+    FROM arrears_data
+    WHERE days_unbalanced >= 17
+
+    UNION ALL
+
+    SELECT 
+        order_id,
+        shopper_id,
+        shopper_age,
+        merchant_id,
+        merchant,
+        product,
+        default_type,
+        order_date,
+        month_year_order,
+        current_order_value,
+        total_overdue,
+        days_unbalanced,
+        '30 days' AS delayed_period
+    FROM arrears_data
+    WHERE days_unbalanced >= 30
+
+    UNION ALL
+
+    SELECT 
+        order_id,
+        shopper_id,
+        shopper_age,
+        merchant_id,
+        merchant,
+        product,
+        default_type,
+        order_date,
+        month_year_order,
+        current_order_value,
+        total_overdue,
+        days_unbalanced,
+        '60 days' AS delayed_period
+    FROM arrears_data
+    WHERE days_unbalanced >= 60
+
+    UNION ALL
+
+    SELECT 
+        order_id,
+        shopper_id,
+        shopper_age,
+        merchant_id,
+        merchant,
+        product,
+        default_type,
+        order_date,
+        month_year_order,
+        current_order_value,
+        total_overdue,
+        days_unbalanced,
+        '90 days' AS delayed_period
+    FROM arrears_data
+    WHERE days_unbalanced >= 90
+)
+
+SELECT 
+    order_id,
+    shopper_id,
+    shopper_age,
+    merchant_id,
+    merchant,
+    product,
+    default_type,
+    order_date,
+    month_year_order,
+    current_order_value,
+    total_overdue,
+    days_unbalanced,
+    delayed_period
+FROM expanded_periods
+```
+
 
