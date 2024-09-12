@@ -1,0 +1,29 @@
+version: 2
+
+models:
+  - name: stg_orders
+    description: "Staging model for orders"
+    columns:
+      - name: order_id
+        description: "The primary key for each order"
+        tests:
+          - unique
+          - not_null
+
+  - name: stg_dim_shoppers
+    description: "Staging model for shoppers data"
+    columns:
+      - name: shopper_id
+        description: "The primary key for each shopper"
+        tests:
+          - unique
+          - not_null
+
+  - name: stg_rel_default_order_type
+    description: "Staging model for default order types"
+    columns:
+      - name: default_type_id
+        description: "The primary key for each default type"
+        tests:
+          - unique
+          - not_null

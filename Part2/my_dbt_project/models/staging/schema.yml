@@ -1,0 +1,16 @@
+version: 2
+
+sources:
+  - name: seQura_dbt
+    description: "Source dataset for the project"
+    tables:
+      - name: orders
+        description: "Orders table uploaded from CSV"
+      - name: dim_shoppers
+        description: "Shoppers data uploaded from CSV"
+      - name: rel_default_order_type
+        description: "Default order type relations uploaded from CSV"
+      - name: merchants
+        description: "Merchant information uploaded from CSV"
+      - name: products
+        description: "Product information uploaded from CSV"
